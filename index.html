@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>操山町内会ポイント帳(管理者用)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root {
+    --paper: #F7F1E3;
+    --paper-deep: #ECE0C4;
+    --paper-line: #E1D2AC;
+    --ink: #22201B;
+    --ink-soft: #8A7B62;
+    --ink-faint: #B6A98A;
+    --seal: #99392A;
+    --seal-deep: #782A1F;
+    --moss: #4F6B47;
+    --moss-deep: #3C5236;
+    --brass: #A9803C;
+    --brass-soft: #C9A968;
+    --cover: #201C17;
+    --shadow: rgba(34, 24, 12, 0.16);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background-color: var(--paper);
+    background-image:
+      radial-gradient(ellipse 60% 40% at 12% 0%, rgba(169,128,60,0.07), transparent 60%),
+      repeating-linear-gradient(115deg, rgba(34,24,12,0.014) 0px, rgba(34,24,12,0.014) 1px, transparent 1px, transparent 4px);
+    color: var(--ink);
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  header {
+    position: relative;
+    padding: 38px 20px 26px;
+    background: var(--cover);
+    background-image: repeating-linear-gradient(48deg, rgba(255,255,255,0.025) 0 2px, transparent 2px 6px);
+    text-align: center;
+    overflow: hidden;
+  }
+  header::before {
+    content: "";
+    position: absolute; top: 9px; left: 22px; right: 22px; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--brass-soft) 20%, var(--brass-soft) 80%, transparent);
+    opacity: 0.5;
+  }
+  header h1 {
+    font-family: 'Shippori Mincho', serif; font-weight: 700; font-size: 1.34rem;
+    color: var(--paper); margin: 0 0 8px; letter-spacing: 0.16em;
+  }
+  header p { margin: 0; color: rgba(247,241,227,0.5); font-size: 0.72rem; letter-spacing: 0.03em; }
+  .hanko { margin: 17px auto 0; width: 34px; height: 34px; opacity: 0.92; transform: rotate(-6deg);
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.35)); }
+  .hanko svg { width: 100%; height: 100%; display: block; }
+
+  #logout-btn { position: absolute; right: 16px; top: 27px; font-size: 0.68rem; padding: 7px 11px;
+    border: 1px solid rgba(247,241,227,0.32); background: transparent; color: var(--paper); border-radius: 3px;
+    cursor: pointer; display: none; font-family: 'Zen Kaku Gothic New', sans-serif; letter-spacing: 0.02em; }
+  #logout-btn:active { background: rgba(247,241,227,0.1); }
+
+  nav { display: flex; justify-content: center; padding: 0 8px; border-bottom: 1px solid var(--paper-line);
+    background: var(--paper-deep); flex-wrap: wrap; }
+  nav button { position: relative; font-family: 'Zen Kaku Gothic New', sans-serif; font-weight: 700;
+    font-size: 0.79rem; letter-spacing: 0.02em; padding: 14px 14px; border: none; background: transparent;
+    color: var(--ink-soft); cursor: pointer; transition: color 0.15s ease; }
+  nav button::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: -1px; height: 2px;
+    background: var(--seal); transform: scaleX(0); transition: transform 0.2s ease; }
+  nav button.active { color: var(--seal); }
+  nav button.active::after { transform: scaleX(1); }
+
+  main { max-width: 640px; margin: 0 auto; padding: 26px 18px 64px; }
+  section { display: none; }
+  section.active { display: block; }
+
+  .card { position: relative; background: var(--paper); border: 1px solid var(--paper-line);
+    border-radius: 2px 2px 7px 7px; padding: 27px 22px 23px; margin-bottom: 18px;
+    box-shadow: 0 14px 26px -22px var(--shadow); }
+  .card::before { content: ""; position: absolute; top: -1px; left: 14px; right: 14px; height: 5px;
+    background-image: radial-gradient(circle, var(--paper) 2.1px, transparent 2.4px);
+    background-size: 13px 10px; background-position: 6px -5px; background-repeat: repeat-x;
+    background-color: var(--paper-line); }
+  .card h2 { font-family: 'Shippori Mincho', serif; font-weight: 700; font-size: 1.02rem; margin: 5px 0 18px;
+    color: var(--ink); letter-spacing: 0.02em; padding-bottom: 13px; border-bottom: 1px solid var(--paper-line);
+    position: relative; }
+  .card h2::after { content: ""; position: absolute; left: 0; bottom: -1px; width: 30px; height: 1px;
+    background: var(--seal); }
+
+  label { display: block; font-size: 0.74rem; color: var(--ink-soft); margin: 13px 0 5px; letter-spacing: 0.01em; }
+  .hint { font-size: 0.72rem; color: var(--ink-soft); margin-top: 7px; line-height: 1.7; }
+  input, select, textarea { width: 100%; padding: 11px 13px; border: 1px solid var(--paper-line); border-radius: 3px;
+    background: #FFFDF8; font-family: inherit; font-size: 0.9rem; color: var(--ink); transition: box-shadow 0.15s ease, border-color 0.15s ease; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--brass); box-shadow: 0 0 0 3px rgba(169,128,60,0.16); }
+  .readonly-box { width: 100%; padding: 11px 13px; border: 1px solid var(--paper-line); border-radius: 3px;
+    background: var(--paper-deep); font-size: 0.9rem; color: var(--ink); }
+
+  .btn { margin-top: 17px; width: 100%; padding: 13px; border: 1px solid var(--seal); border-radius: 3px;
+    background: linear-gradient(180deg, #A83C2C 0%, var(--seal) 100%); color: var(--paper); font-size: 0.88rem;
+    font-weight: 700; letter-spacing: 0.04em; cursor: pointer; font-family: 'Zen Kaku Gothic New', sans-serif;
+    box-shadow: 0 2px 0 var(--seal-deep); transition: transform 0.08s ease, box-shadow 0.08s ease; }
+  .btn.secondary { background: linear-gradient(180deg, #2C2822 0%, var(--cover) 100%); border-color: var(--cover);
+    box-shadow: 0 2px 0 #100e0b; }
+  .btn.ghost { background: transparent; color: var(--ink-soft); border: 1px solid var(--paper-line); box-shadow: none; }
+  .btn:active { transform: translateY(2px); box-shadow: none; }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; transform: none; }
+  .link-btn { background: none; border: none; color: var(--seal); font-size: 0.75rem; text-decoration: underline;
+    text-underline-offset: 2px; cursor: pointer; padding: 8px 0; font-family: 'Zen Kaku Gothic New', sans-serif; }
+
+  .banner { background: var(--paper-deep); border: 1px solid var(--moss); color: var(--moss-deep); border-radius: 3px;
+    padding: 12px 14px; font-size: 0.8rem; margin-bottom: 15px; line-height: 1.6; }
+  .banner.warn { border-color: var(--seal); color: var(--seal); }
+
+  .big-number { font-family: 'Shippori Mincho', serif; font-weight: 700; font-size: 2.2rem; text-align: center;
+    color: var(--seal); margin: 14px 0; letter-spacing: 0.04em; transform: rotate(-1.4deg); }
+
+  .log-entry, .member-row, .catalog-row, .tmpl-row { display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; padding: 12px 2px; border-bottom: 1px dashed var(--paper-line); font-size: 0.83rem; }
+  .log-entry:last-child, .member-row:last-child, .catalog-row:last-child, .tmpl-row:last-child { border-bottom: none; }
+  .log-sub { color: var(--ink-soft); font-size: 0.72rem; margin-top: 2px; }
+  .log-pt { font-weight: 700; white-space: nowrap; font-family: 'Shippori Mincho', serif; font-variant-numeric: tabular-nums; }
+  .log-pt.earn { color: var(--moss-deep); }
+  .log-pt.redeem { color: var(--seal); }
+  .empty { color: var(--ink-soft); font-size: 0.82rem; text-align: center; padding: 22px 0; }
+  .sub-box { background: var(--paper-deep); border: 1px solid var(--paper-line); border-radius: 3px; padding: 15px; margin-top: 13px; }
+  .catalog-pt, .stamp-num { font-variant-numeric: tabular-nums; }
+  .catalog-pt { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; padding: 4px 9px;
+    border: 1px solid var(--seal); color: var(--seal); border-radius: 3px; font-family: 'Shippori Mincho', serif;
+    font-weight: 700; font-size: 0.76rem; }
+  .stamp-num { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px;
+    border: 1px solid var(--seal); color: var(--seal); border-radius: 50%; font-family: 'Shippori Mincho', serif;
+    font-weight: 700; font-size: 0.82rem; }
+  .member-points { display: flex; align-items: center; gap: 7px; }
+  .del-btn { background: none; border: none; color: var(--ink-soft); font-size: 0.72rem; cursor: pointer;
+    text-decoration: underline; text-underline-offset: 2px; margin-left: 8px; }
+
+  #scanner-overlay { display: none; position: fixed; inset: 0; background: #000; z-index: 999; }
+  #scanner-overlay video { width: 100%; height: 100%; object-fit: cover; }
+  #scanner-close { position: absolute; top: calc(env(safe-area-inset-top) + 14px); right: 14px;
+    background: rgba(247,241,227,0.95); border: none; border-radius: 3px; padding: 10px 16px; font-size: 0.84rem;
+    color: var(--ink); cursor: pointer; font-family: 'Zen Kaku Gothic New', sans-serif; }
+  #scanner-frame { position: absolute; top: 50%; left: 50%; width: 62vw; max-width: 280px; aspect-ratio: 1/1;
+    transform: translate(-50%, -50%); box-shadow: 0 0 0 999px rgba(0,0,0,0.45); }
+  #scanner-frame .corner { position: absolute; width: 26px; height: 26px; border: 2px solid var(--brass-soft); opacity: 0.9; }
+  #scanner-frame .corner.tl { top: -2px; left: -2px; border-right: none; border-bottom: none; }
+  #scanner-frame .corner.tr { top: -2px; right: -2px; border-left: none; border-bottom: none; }
+  #scanner-frame .corner.bl { bottom: -2px; left: -2px; border-right: none; border-top: none; }
+  #scanner-frame .corner.br { bottom: -2px; right: -2px; border-left: none; border-top: none; }
+  #scanner-hint { position: absolute; bottom: calc(env(safe-area-inset-bottom) + 26px); left: 0; right: 0;
+    text-align: center; color: var(--paper); font-size: 0.8rem; letter-spacing: 0.02em; }
+
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  .notice { font-size: 0.72rem; color: var(--seal); text-align: center; margin-top: 6px; line-height: 1.6; }
+  .row2 { display: flex; gap: 10px; }
+  .row2 > div { flex: 1; }
+  #qr-preview { display: flex; justify-content: center; margin: 18px 0; padding: 14px; background: #fff;
+    border: 1px solid var(--paper-line); border-radius: 3px; }
+  .qr-label { text-align: center; font-size: 0.85rem; margin-bottom: 3px; }
+  .qr-pts { text-align: center; color: var(--seal); font-weight: 700; margin-bottom: 4px; font-family: 'Shippori Mincho', serif; }
+  .tmpl-actions button { font-size: 0.72rem; padding: 6px 10px; margin-left: 4px; }
+  #lock-screen { max-width: 420px; margin: 56px auto 0; text-align: center; padding: 0 16px; }
+  .fallback-note { text-align: left; font-size: 0.68rem; color: var(--ink-soft); margin-top: 16px; line-height: 1.7;
+    background: var(--paper-deep); border-radius: 3px; padding: 12px 13px; }
+  @media print {
+    body * { visibility: hidden; }
+    #print-area, #print-area * { visibility: visible; }
+    #print-area { position: absolute; top: 0; left: 0; width: 100%; text-align: center; padding-top: 40px; }
+  }
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>操山町内会ポイント帳(管理者用)</h1>
+  <p>係の人専用の管理画面です</p>
+
+  <div class="hanko" aria-hidden="true">
+    <svg viewBox="0 0 64 64">
+      <defs>
+        <filter id="hankoA" x="-20%" y="-20%" width="140%" height="140%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" result="n" seed="7"/>
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="3.2"/>
+        </filter>
+      </defs>
+      <g filter="url(#hankoA)">
+        <circle cx="32" cy="32" r="27" fill="none" stroke="#c9503c" stroke-width="2.6"/>
+        <circle cx="32" cy="32" r="20" fill="none" stroke="#c9503c" stroke-width="1.1"/>
+        <text x="32" y="39" text-anchor="middle" font-family="'Shippori Mincho', serif" font-size="17" fill="#c9503c">印</text>
+      </g>
+    </svg>
+  </div>
+  <button id="logout-btn">ログアウト</button>
+</header>
+
+<div id="lock-screen">
+  <div class="card" id="checking-card">
+    <p class="hint">確認しています…</p>
+  </div>
+
+  <!-- 初回:パスワードを新規に決める -->
+  <div class="card" id="setup-card" style="display:none;">
+    <h2>初期設定:パスワードを決める</h2>
+    <p class="hint">まだパスワードが設定されていません。係の人だけが知っているパスワードを決めてください。</p>
+    <label for="setup-email">メールアドレス</label>
+    <input id="setup-email" type="email" placeholder="パスワードを忘れた時の再設定に使います">
+    <label for="setup-password">パスワード</label>
+    <input id="setup-password" type="password" placeholder="パスワードを入力">
+    <label for="setup-password2">もう一度入力</label>
+    <input id="setup-password2" type="password" placeholder="確認のため再入力">
+    <button class="btn secondary" id="setup-btn">このパスワードで設定する</button>
+    <p class="hint" id="setup-hint"></p>
+  </div>
+
+  <!-- 通常のログイン画面 -->
+  <div class="card" id="login-card" style="display:none;">
+    <h2>係の人ログイン</h2>
+    <label for="passcode-input">パスワード</label>
+    <input id="passcode-input" type="password" placeholder="パスワードを入力">
+    <button class="btn secondary" id="unlock-btn">開く</button>
+    <p class="hint" id="lock-hint"></p>
+    <button class="link-btn" id="forgot-link">パスワードを忘れた場合はこちら</button>
+  </div>
+
+  <!-- パスワード再設定(メールの確認コード) -->
+  <div class="card" id="reset-card" style="display:none;">
+    <h2>パスワードの再設定</h2>
+    <div id="reset-step1">
+      <p class="hint">登録済みのメールアドレスに確認コードを送信します。</p>
+      <button class="btn secondary" id="reset-send-btn">確認コードを送信する</button>
+    </div>
+    <div id="reset-step2" style="display:none;">
+      <label for="reset-code">確認コード(メールに記載)</label>
+      <input id="reset-code" placeholder="6桁のコード">
+      <label for="reset-newpw">新しいパスワード</label>
+      <input id="reset-newpw" type="password" placeholder="新しいパスワード">
+      <label for="reset-newpw2">新しいパスワード(確認)</label>
+      <input id="reset-newpw2" type="password" placeholder="もう一度入力">
+      <button class="btn secondary" id="reset-confirm-btn">パスワードを再設定する</button>
+    </div>
+    <p class="hint" id="reset-hint"></p>
+    <div class="fallback-note">
+      メールが届かない場合:Googleスプレッドシートを開き、「Config」シートの adminPassword の行を削除してください。次回このページを開いたときに、新しいパスワードを設定できます。
+    </div>
+    <button class="link-btn" id="back-to-login-link">ログイン画面に戻る</button>
+  </div>
+</div>
+
+<div id="app-wrap" style="display:none;">
+<nav>
+  <button data-tab="members" class="active">会員一覧</button>
+  <button data-tab="qr">QR発行</button>
+  <button data-tab="catalog">交換リスト</button>
+  <button data-tab="redeem">交換</button>
+  <button data-tab="history">履歴</button>
+</nav>
+
+<main>
+
+  <section id="members" class="active">
+    <div class="card">
+      <h2>会員一覧とポイント</h2>
+      <div id="member-list"><div class="empty">まだ会員が登録されていません</div></div>
+      <p class="hint">会員登録は住民が自分で行います(住民用アプリから)。名前はGoogleスプレッドシートで確認できます。</p>
+    </div>
+  </section>
+
+  <section id="qr">
+    <div class="card">
+      <h2>活動用QRコードを作る</h2>
+      <label for="qr-label">活動内容</label>
+      <input id="qr-label" placeholder="例:清掃活動">
+      <label for="qr-points">付与ポイント</label>
+      <input id="qr-points" type="number" min="1" value="1">
+      <label for="qr-resident-url">住民用アプリのURL</label>
+      <input id="qr-resident-url" placeholder="https://...(住民用アプリのリンク)">
+      <button class="btn secondary" id="make-qr-btn">QRコードを作成する</button>
+      <div id="print-area" style="display:none;">
+        <p class="qr-label" id="qr-shown-label"></p>
+        <p class="qr-pts" id="qr-shown-points"></p>
+        <div id="qr-preview"></div>
+        <p class="qr-label" style="font-size:0.75rem;color:var(--ink-soft);">スマホのカメラでこのQRを読み取ってください</p>
+      </div>
+      <button class="btn ghost" id="print-qr-btn" style="display:none;">印刷する</button>
+      <p class="hint">住民用アプリのURLは、このブラウザを閉じるまで記憶されます。</p>
+    </div>
+    <div class="card">
+      <h2>よく使う活動(保存済み)</h2>
+      <div id="tmpl-list"><div class="empty">保存された活動はありません</div></div>
+    </div>
+  </section>
+
+  <section id="catalog">
+    <div class="card">
+      <h2>交換リストに景品を追加</h2>
+      <label for="catalog-label">景品名</label>
+      <input id="catalog-label" placeholder="例:トイレットペーパー">
+      <label for="catalog-points">必要ポイント</label>
+      <input id="catalog-points" type="number" min="1" value="1">
+      <button class="btn secondary" id="add-catalog-btn">追加する</button>
+      <p class="hint">ここに追加した景品は、住民用アプリの「履歴」ページに一覧で表示されます。</p>
+    </div>
+    <div class="card">
+      <h2>登録済みの交換リスト</h2>
+      <div id="catalog-manage-list"><div class="empty">まだ登録されていません</div></div>
+    </div>
+  </section>
+
+  <section id="redeem">
+    <div class="card">
+      <h2>ポイントを日用品と交換</h2>
+      <label for="redeem-number">会員番号</label>
+      <select id="redeem-number"></select>
+      <label for="redeem-label">交換する品物</label>
+      <input id="redeem-label" placeholder="例:洗剤セット">
+      <div class="row2">
+        <div><label for="redeem-points">必要ポイント</label><input id="redeem-points" type="number" min="1" value="1"></div>
+        <div><label for="redeem-date">日付</label><input id="redeem-date" type="date"></div>
+      </div>
+      <button class="btn secondary" id="add-redeem-btn">交換する</button>
+      <p class="notice" id="redeem-notice"></p>
+    </div>
+  </section>
+
+  <section id="history">
+    <div class="card">
+      <h2>記録履歴</h2>
+      <div id="log-list"><div class="empty">まだ記録がありません</div></div>
+    </div>
+  </section>
+
+</main>
+</div>
+
+<script>
+// ここに、GASの「ウェブアプリのURL」を貼り付けてください(住民用と同じもの)
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzFM65bEL3PBsfU8ZUgqL5v9lfUwZ8BNcdsS0yszfSs-3nf8o5jpHJ_Z7TB9gC6rcY6/exec';
+
+let members = [];
+let log = [];
+let templates = [];
+let catalog = [];
+let adminPassword = '';
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+async function apiGet() {
+  const res = await fetch(WEB_APP_URL);
+  return res.json();
+}
+async function apiPost(payload) {
+  const res = await fetch(WEB_APP_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  });
+  return res.json();
+}
+
+function showLockCard(id) {
+  ['checking-card', 'setup-card', 'login-card', 'reset-card'].forEach(cid => {
+    document.getElementById(cid).style.display = (cid === id) ? 'block' : 'none';
+  });
+}
+
+async function initLockScreen() {
+  showLockCard('checking-card');
+  try {
+    const data = await apiGet();
+    showLockCard(data.passwordSet ? 'login-card' : 'setup-card');
+  } catch (e) {
+    document.getElementById('checking-card').innerHTML = '<p class="hint">通信に失敗しました。WEB_APP_URLの設定をご確認ください。</p>';
+    showLockCard('checking-card');
+  }
+}
+
+// ---- 初期設定(初回のみ) ----
+document.getElementById('setup-btn').addEventListener('click', async () => {
+  const email = document.getElementById('setup-email').value.trim();
+  const p1 = document.getElementById('setup-password').value;
+  const p2 = document.getElementById('setup-password2').value;
+  const hintEl = document.getElementById('setup-hint');
+  if (!email) { hintEl.textContent = 'メールアドレスを入力してください。'; return; }
+  if (!p1) { hintEl.textContent = 'パスワードを入力してください。'; return; }
+  if (p1 !== p2) { hintEl.textContent = '入力が一致しません。もう一度確認してください。'; return; }
+  const btn = document.getElementById('setup-btn');
+  btn.disabled = true;
+  try {
+    const res = await apiPost({ action: 'checkPasscode', passcode: p1, email });
+    if (res.ok) {
+      adminPassword = p1;
+      unlockApp();
+    } else {
+      hintEl.textContent = '設定に失敗しました。もう一度お試しください。';
+    }
+  } catch (e) {
+    hintEl.textContent = '通信に失敗しました。';
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// ---- 通常ログイン ----
+document.getElementById('unlock-btn').addEventListener('click', async () => {
+  const input = document.getElementById('passcode-input').value;
+  const hintEl = document.getElementById('lock-hint');
+  const btn = document.getElementById('unlock-btn');
+  if (!input) { hintEl.textContent = 'パスワードを入力してください。'; return; }
+  btn.disabled = true;
+  try {
+    const res = await apiPost({ action: 'checkPasscode', passcode: input });
+    if (res.ok) {
+      adminPassword = input;
+      unlockApp();
+    } else {
+      hintEl.textContent = 'パスワードが違います。';
+    }
+  } catch (e) {
+    hintEl.textContent = '通信に失敗しました。時間をおいて再度お試しください。';
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// ---- パスワードを忘れた場合(メール再設定) ----
+document.getElementById('forgot-link').addEventListener('click', () => {
+  showLockCard('reset-card');
+  document.getElementById('reset-step1').style.display = 'block';
+  document.getElementById('reset-step2').style.display = 'none';
+  document.getElementById('reset-hint').textContent = '';
+});
+document.getElementById('back-to-login-link').addEventListener('click', () => showLockCard('login-card'));
+
+document.getElementById('reset-send-btn').addEventListener('click', async () => {
+  const hintEl = document.getElementById('reset-hint');
+  const btn = document.getElementById('reset-send-btn');
+  btn.disabled = true;
+  try {
+    const res = await apiPost({ action: 'requestReset', target: 'admin' });
+    if (res.ok) {
+      hintEl.textContent = '登録されたメールアドレスに確認コードを送信しました。';
+      document.getElementById('reset-step2').style.display = 'block';
+    } else if (res.error === 'no_email') {
+      hintEl.textContent = 'メールアドレスが未登録です。下記の方法で再設定してください。';
+    } else {
+      hintEl.textContent = '送信に失敗しました。';
+    }
+  } catch (e) {
+    hintEl.textContent = '通信に失敗しました。';
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+document.getElementById('reset-confirm-btn').addEventListener('click', async () => {
+  const code = document.getElementById('reset-code').value.trim();
+  const newPw = document.getElementById('reset-newpw').value;
+  const newPw2 = document.getElementById('reset-newpw2').value;
+  const hintEl = document.getElementById('reset-hint');
+  if (!code) { hintEl.textContent = '確認コードを入力してください。'; return; }
+  if (!newPw) { hintEl.textContent = '新しいパスワードを入力してください。'; return; }
+  if (newPw !== newPw2) { hintEl.textContent = '新しいパスワードが一致しません。'; return; }
+  const btn = document.getElementById('reset-confirm-btn');
+  btn.disabled = true;
+  try {
+    const res = await apiPost({ action: 'confirmReset', target: 'admin', code, newPassword: newPw });
+    if (res.ok) {
+      adminPassword = newPw;
+      unlockApp();
+    } else if (res.error === 'invalid_code') {
+      hintEl.textContent = '確認コードが違います。';
+    } else if (res.error === 'expired') {
+      hintEl.textContent = '確認コードの有効期限が切れました。もう一度送信してください。';
+    } else {
+      hintEl.textContent = '再設定に失敗しました。';
+    }
+  } catch (e) {
+    hintEl.textContent = '通信に失敗しました。';
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+function unlockApp() {
+  document.getElementById('lock-screen').style.display = 'none';
+  document.getElementById('app-wrap').style.display = 'block';
+  document.getElementById('logout-btn').style.display = 'inline-block';
+  document.getElementById('passcode-input').value = '';
+  document.getElementById('setup-password').value = '';
+  document.getElementById('setup-password2').value = '';
+  loadData();
+}
+
+// ---- ログアウト ----
+document.getElementById('logout-btn').addEventListener('click', () => {
+  adminPassword = '';
+  document.getElementById('app-wrap').style.display = 'none';
+  document.getElementById('logout-btn').style.display = 'none';
+  document.getElementById('lock-screen').style.display = 'block';
+  initLockScreen();
+});
+
+// ---- Data ----
+async function loadData() {
+  try {
+    const data = await apiGet();
+    members = data.members || [];
+    log = data.log || [];
+    templates = data.templates || [];
+    catalog = data.catalog || [];
+  } catch (e) {
+    alert('データの読み込みに失敗しました。');
+  }
+  render();
+}
+
+function pointsFor(number) {
+  return log.reduce((sum, e) => sum + (Number(e.number) === Number(number) ? (e.type === 'earn' ? Number(e.points) : -Number(e.points)) : 0), 0);
+}
+
+function render() {
+  renderMemberList();
+  renderNumberSelects();
+  renderLog();
+  renderTemplates();
+  renderCatalogManage();
+}
+
+function renderCatalogManage() {
+  const el = document.getElementById('catalog-manage-list');
+  if (catalog.length === 0) { el.innerHTML = '<div class="empty">まだ登録されていません</div>'; return; }
+  const sorted = [...catalog].sort((a, b) => Number(a.points) - Number(b.points));
+  el.innerHTML = sorted.map(c => `
+    <div class="tmpl-row">
+      <span>${escapeHtml(c.label)}(${c.points}pt)</span>
+      <button class="del-btn" data-id="${c.id}">削除</button>
+    </div>`).join('');
+  el.querySelectorAll('.del-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      await apiPost({ action: 'deleteCatalogItem', id: btn.dataset.id, passcode: adminPassword });
+      await loadData();
+    });
+  });
+}
+
+function renderMemberList() {
+  const el = document.getElementById('member-list');
+  if (members.length === 0) { el.innerHTML = '<div class="empty">まだ会員が登録されていません</div>'; return; }
+  const sorted = [...members].sort((a, b) => Number(a.number) - Number(b.number));
+  el.innerHTML = sorted.map(m => `
+    <div class="member-row">
+      <span>No.${m.number}</span>
+      <span class="member-points">
+        <span class="stamp-num">${pointsFor(m.number)}</span>
+        <button class="del-btn" data-num="${m.number}">削除</button>
+      </span>
+    </div>`).join('');
+  el.querySelectorAll('.del-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('No.' + btn.dataset.num + ' を削除しますか?記録は残ります。')) return;
+      await apiPost({ action: 'deleteMember', number: btn.dataset.num, passcode: adminPassword });
+      await loadData();
+    });
+  });
+}
+
+function renderNumberSelects() {
+  const opts = members.length
+    ? members.map(m => `<option value="${m.number}">No.${m.number}(${pointsFor(m.number)}pt)</option>`).join('')
+    : '<option value="">会員がいません</option>';
+  document.getElementById('redeem-number').innerHTML = opts;
+}
+
+function renderLog() {
+  const el = document.getElementById('log-list');
+  if (log.length === 0) { el.innerHTML = '<div class="empty">まだ記録がありません</div>'; return; }
+  const sorted = [...log].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  el.innerHTML = sorted.map(e => {
+    const sign = e.type === 'earn' ? '+' : '−';
+    return `<div class="log-entry">
+      <span><div>No.${e.number} — ${escapeHtml(e.label)}</div><div class="log-sub">${e.date || ''}</div></span>
+      <span class="log-pt ${e.type}">${sign}${e.points}pt</span>
+    </div>`;
+  }).join('');
+}
+
+function renderTemplates() {
+  const el = document.getElementById('tmpl-list');
+  if (templates.length === 0) { el.innerHTML = '<div class="empty">保存された活動はありません</div>'; return; }
+  el.innerHTML = templates.map(t => `
+    <div class="tmpl-row">
+      <span>${escapeHtml(t.label)}(${t.points}pt)</span>
+      <span class="tmpl-actions">
+        <button class="btn ghost" data-act="show" data-id="${t.id}" style="margin:0;">QR表示</button>
+        <button class="del-btn" data-act="del" data-id="${t.id}">削除</button>
+      </span>
+    </div>`).join('');
+  el.querySelectorAll('[data-act="show"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const t = templates.find(x => x.id === btn.dataset.id);
+      if (t) generateQr(t.label, t.points);
+    });
+  });
+  el.querySelectorAll('[data-act="del"]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      await apiPost({ action: 'deleteTemplate', id: btn.dataset.id, passcode: adminPassword });
+      await loadData();
+    });
+  });
+}
+
+// ---- QR ----
+function generateQr(label, points) {
+  const baseUrl = document.getElementById('qr-resident-url').value.trim();
+  if (!baseUrl) { alert('住民用アプリのURLを入力してください。'); return; }
+  const params = new URLSearchParams({ activity: label, points: String(points) });
+  const url = baseUrl + (baseUrl.includes('?') ? '&' : '?') + params.toString();
+  document.getElementById('qr-shown-label').textContent = label;
+  document.getElementById('qr-shown-points').textContent = points + 'pt';
+  const preview = document.getElementById('qr-preview');
+  preview.innerHTML = '';
+  new QRCode(preview, { text: url, width: 200, height: 200 });
+  document.getElementById('print-area').style.display = 'block';
+  document.getElementById('print-qr-btn').style.display = 'block';
+}
+document.getElementById('make-qr-btn').addEventListener('click', async () => {
+  const label = document.getElementById('qr-label').value.trim();
+  const points = parseInt(document.getElementById('qr-points').value, 10);
+  if (!label || !points || points <= 0) { alert('活動内容とポイント数を入力してください。'); return; }
+  generateQr(label, points);
+  if (!templates.some(t => t.label === label && Number(t.points) === points)) {
+    await apiPost({ action: 'addTemplate', label, points, passcode: adminPassword });
+    await loadData();
+  }
+});
+document.getElementById('print-qr-btn').addEventListener('click', () => window.print());
+
+// ---- 交換リスト管理 ----
+document.getElementById('add-catalog-btn').addEventListener('click', async () => {
+  const label = document.getElementById('catalog-label').value.trim();
+  const points = parseInt(document.getElementById('catalog-points').value, 10);
+  if (!label || !points || points <= 0) { alert('景品名とポイント数を入力してください。'); return; }
+  const res = await apiPost({ action: 'addCatalogItem', label, points, passcode: adminPassword });
+  if (!res.ok) { alert('追加に失敗しました。'); return; }
+  document.getElementById('catalog-label').value = '';
+  document.getElementById('catalog-points').value = 1;
+  await loadData();
+});
+
+// ---- Redeem ----
+document.getElementById('redeem-date').value = todayStr();
+document.getElementById('add-redeem-btn').addEventListener('click', async () => {
+  const number = parseInt(document.getElementById('redeem-number').value, 10);
+  const label = document.getElementById('redeem-label').value.trim();
+  const points = parseInt(document.getElementById('redeem-points').value, 10);
+  const date = document.getElementById('redeem-date').value || todayStr();
+  const notice = document.getElementById('redeem-notice');
+  notice.textContent = '';
+  if (!number || !label || !points || points <= 0) { alert('会員番号・品物・必要ポイント数を確認してください。'); return; }
+  const balance = pointsFor(number);
+  if (balance < points) { notice.textContent = `ポイントが足りません(現在 ${balance}pt / 必要 ${points}pt)`; return; }
+  const res = await apiPost({ action: 'addRedeem', number, label, points, date, passcode: adminPassword });
+  if (!res.ok) { notice.textContent = res.error === 'insufficient_points' ? 'ポイントが足りません。' : '交換に失敗しました。'; return; }
+  document.getElementById('redeem-label').value = '';
+  document.getElementById('redeem-points').value = 1;
+  await loadData();
+});
+
+// ---- Tabs ----
+document.querySelectorAll('nav button[data-tab]').forEach(btn => {
+  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+});
+function switchTab(tab) {
+  document.querySelectorAll('nav button[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('main section').forEach(s => s.classList.toggle('active', s.id === tab));
+}
+
+initLockScreen();
+</script>
+</body>
+</html>
